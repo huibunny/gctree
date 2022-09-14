@@ -1,0 +1,206 @@
+basePath: /v1
+definitions:
+  entity.TreeNode:
+    properties:
+      app_id:
+        example: sdfasdflksajflksadjflksja
+        type: string
+      app_name:
+        example: las
+        type: string
+      app_type_id:
+        example: fsdfdjklfsdjlkafjslakjfs
+        type: string
+      brief:
+        example: https://las.com/las.png
+        type: string
+      cover:
+        example: https://las.com/las.png
+        type: string
+      create_time:
+        example: "2022-10-11 20:20:20"
+        type: string
+      icon:
+        example: https://las.com/las.ico
+        type: string
+      is_del:
+        example: false
+        type: boolean
+      project_id:
+        example: sdfasdflksajflksadjflk111
+        type: string
+      tenant_id:
+        example: sdfasdflksajflksadjflk111
+        type: string
+      update_time:
+        example: "2022-10-11 20:20:20"
+        type: string
+      user_id:
+        example: sdfasdflksajflksadjflk111
+        type: string
+    type: object
+  v1.appResponse:
+    properties:
+      data: {}
+      errcode:
+        example: 0
+        type: integer
+      message:
+        example: success
+        type: string
+    type: object
+  v1.doDeleteRequest:
+    properties:
+      app_id_list:
+        items:
+          type: string
+        type: array
+    required:
+    - app_id_list
+    type: object
+  v1.doDetailRequest:
+    properties:
+      app_id:
+        example: ksjdflksdjflksdjf
+        type: string
+    required:
+    - app_id
+    type: object
+  v1.doSaveRequest:
+    properties:
+      app_list:
+        items:
+          $ref: '#/definitions/entity.TreeNode'
+        type: array
+    type: object
+  v1.response:
+    properties:
+      message:
+        example: success
+        type: string
+    type: object
+host: localhost:8820
+info:
+  contact: {}
+  description: Using a translation service as an example
+  title: gctree API
+  version: "1.0"
+paths:
+  /user/delete:
+    post:
+      consumes:
+      - application/json
+      description: Delete system
+      operationId: Delete
+      parameters:
+      - description: Delete System
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.doDeleteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Delete
+      tags:
+      - Delete
+  /user/detail:
+    post:
+      consumes:
+      - application/json
+      description: Detail system
+      operationId: Detail
+      parameters:
+      - description: Detail System
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.doDetailRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Detail
+      tags:
+      - Detail
+  /user/list:
+    post:
+      consumes:
+      - application/json
+      description: List system
+      operationId: List
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: List
+      tags:
+      - List
+  /user/save:
+    post:
+      consumes:
+      - application/json
+      description: Save system
+      operationId: Save
+      parameters:
+      - description: Save System
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/v1.doSaveRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/v1.response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/v1.response'
+      summary: Save
+      tags:
+      - save
+swagger: "2.0"

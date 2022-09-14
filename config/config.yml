@@ -1,0 +1,23 @@
+app:
+  name: 'app'
+  version: '1.0.0'
+
+logger:
+  log_level: 'debug'
+  # rollbar_env: 'go-clean-template'
+
+consul:  
+  checkApi: '/healthz'
+  # consul心跳间隔, 秒
+  interval: 30
+  # 心跳超时, 秒
+  timeout: 20
+
+postgres:
+  pool_max: 2
+  url: 'postgresql://dev_user:dev123@dog.ap:5432/app'
+
+rabbitmq:
+  rpc_server_exchange: 'server.app'
+  rpc_client_exchange: 'client.app'
+  url: 'amqp://mq_user:Zk2022@dog.ap:5672/'

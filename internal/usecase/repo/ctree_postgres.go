@@ -129,31 +129,73 @@ func formatTimeString(t time.Time) string {
 }
 
 // List -.
-func (r *CTreeRepo) List(ctx context.Context, masterID, pid string) ([]entity.TreeNode, int, error) {
-	// 1. query all if pid is empty
-	// 2. query all descendants by pid
-	sql, _, err := r.Builder.Select("id, meta_name, meta, create_time, update_time, is_del").From(USER_TABLE_META).Where("is_del=?").ToSql()
-	if err != nil {
-		return nil, -1, fmt.Errorf("CTreeRepo - List - Builder: %w", err)
-	}
-	rows, err := r.Pool.Query(ctx, sql, false)
-	if err != nil {
-		return nil, -2, fmt.Errorf("CTreeRepo - List - Query: %w", err)
+func (r *CTreeRepo) List(ctx context.Context, masterID, pid string) (entity.MetaNode, int, error) {
+	var metaNode entity.MetaNode
+	var newPID string
+	if len(pid) > 0 {
+		newPID = pid
 	} else {
-		var metaList []entity.TreeNode
+		// query the root id
+		sql, args, err := r.Builder.Select("id").From(USER_TABLE_META).OrderBy("create_time asc").Offset(0).Limit(1).ToSql()
+		if err != nil {
+			return metaNode, -1, fmt.Errorf("CTreeRepo - List - Builder: %w", err)
+		}
+		err = r.Pool.QueryRow(ctx, sql, args...).Scan(&newPID)
+		if err != nil {
+			return metaNode, -2, fmt.Errorf("CTreeRepo - List - QueryRow: %w", err)
+		}
+	}
+	sql, args, err := r.Builder.Select("ancestor_id", "tm.meta_name as ancestor_name",
+		"tm.extra as ancestor_extra", "descendant_id", "tm2.meta_name as descendant_name",
+		"tm2.extra as descendant_extra").From("t_meta_path as tmp").Join(
+		"t_meta tm on tm.id = ancestor_id and tm.is_del = false").Join(
+		"t_meta tm2 on tm2.id = descendant_id and tm2.is_del = false").Where(
+		squirrel.Eq{"tmp.is_del": false, "ancestor_id": newPID, "distance": 1}).ToSql()
+	if err != nil {
+		return metaNode, -1, fmt.Errorf("CTreeRepo - List - Builder: %w", err)
+	}
+	rows, err := r.Pool.Query(ctx, sql, args...)
+	if err != nil {
+		return metaNode, -2, fmt.Errorf("CTreeRepo - List - Query: %w", err)
+	} else {
+		var ancestorID, ancestorName string
+		var ancestorExtra map[string]interface{}
+		var metaList []entity.Meta
 		for rows.Next() {
-			var metaID, metaName string
-			var meta map[string]interface{}
-			var createTime, updateTime time.Time
-			var isDel bool
-			err := rows.Scan(&metaID, &metaName, &meta, &createTime, &updateTime, &isDel)
+			var descendantID, descendantName string
+			var descendantExtra map[string]interface{}
+			err = rows.Scan(&ancestorID, &ancestorName, &ancestorExtra, &descendantID, &descendantName, &descendantExtra)
 			if err != nil {
-				return nil, -3, err
+				return metaNode, -3, fmt.Errorf("CTreeRepo - List - Scan: %w", err)
 			} else {
-				// metaList = append(metaList, entity.TreeNode{MetaID: metaID, MetaName: metaName, Meta: meta, CreateTime: formatTimeString(createTime), UpdateTime: formatTimeString(updateTime), IsDel: isDel})
+				metaList = append(metaList, entity.Meta{
+					MetaID:   descendantID,
+					MetaName: descendantName,
+					Extra:    descendantExtra,
+				})
 			}
 		}
-		return metaList, 0, nil
+
+		if len(metaList) > 0 {
+			for _, meta := range metaList {
+				descendantID := meta.MetaID
+				descendantName := meta.MetaName
+				descendantExtra := meta.Extra
+				childNode, _, _ := r.List(ctx, masterID, descendantID)
+				childNode.Meta.MetaID = descendantID
+				childNode.Meta.MetaName = descendantName
+				childNode.Meta.Extra = descendantExtra
+				childNode.Meta.PID = ancestorID
+				metaNode.Children = append(metaNode.Children, childNode)
+			}
+		}
+
+		metaNode.Meta.MetaID = ancestorID
+		metaNode.Meta.MetaName = ancestorName
+		metaNode.Meta.Extra = ancestorExtra
+		metaNode.Meta.PID = newPID
+
+		return metaNode, 0, nil
 	}
 
 }
@@ -178,12 +220,12 @@ func (r *CTreeRepo) Detail(ctx context.Context, metaID string) (entity.TreeNode,
 			UserID:   userID,
 			MetaList: []entity.Meta{
 				{
-					MetaID:     metaID,
-					MetaName:   metaName,
-					Extra:      extra,
-					CreateTime: formatTimeString(createTime),
-					UpdateTime: formatTimeString(updateTime),
-					IsDel:      isDel,
+					MetaID:   metaID,
+					MetaName: metaName,
+					Extra:    extra,
+					// CreateTime: formatTimeString(createTime),
+					// UpdateTime: formatTimeString(updateTime),
+					// IsDel:      isDel,
 				},
 			},
 		}, 0, nil

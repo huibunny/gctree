@@ -26,7 +26,7 @@ func (uc *CTreeUserCase) Save(ctx context.Context, t entity.TreeNode) ([]string,
 }
 
 // List -.
-func (uc *CTreeUserCase) List(ctx context.Context, masterID, pid string) ([]entity.TreeNode, int, error) {
+func (uc *CTreeUserCase) List(ctx context.Context, masterID, pid string) (entity.MetaNode, int, error) {
 
 	return uc.repo.List(ctx, masterID, pid)
 }

@@ -13,7 +13,7 @@ type (
 	// CTree -.
 	CTree interface {
 		Save(context.Context, entity.TreeNode) ([]string, int, error)
-		List(context.Context, string, string) ([]entity.TreeNode, int, error)
+		List(context.Context, string, string) (entity.MetaNode, int, error)
 		Detail(context.Context, string) (entity.TreeNode, int, error)
 		Delete(context.Context, []string) (int, error)
 	}

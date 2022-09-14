@@ -73,11 +73,11 @@ func (r *appRoutes) save(c *gin.Context) {
 
 type doListRequest struct {
 	MasterID string `form:"master_id" binding:"required" example:"ksjdflksdjflksdjf"`
-	PID      string `form:"pid" binding:"required" example:"ksjdflksdjflksdjf"`
+	PID      string `form:"pid"  example:"ksjdflksdjflksdjf"`
 }
 
 type appListData struct {
-	EntityList []entity.TreeNode `json:"entity_list"`
+	MetaNode entity.MetaNode `json:"meta_node"`
 }
 
 // @Summary     List
@@ -93,18 +93,18 @@ type appListData struct {
 func (r *appRoutes) list(c *gin.Context) {
 	var request doListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
-		r.l.Error(err, "http - v1 - doDetail")
+		r.l.Error(err, "http - v1 - doList")
 		errorResponse(c, http.StatusBadRequest, "invalid request body")
 
 		return
 	}
-	entityList, errcode, err := r.t.List(c, request.MasterID, request.PID)
+	metaNode, errcode, err := r.t.List(c, request.MasterID, request.PID)
 	message := "success"
 	if err != nil {
 		message = err.Error()
 	}
 
-	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: appListData{EntityList: entityList}})
+	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: appListData{MetaNode: metaNode}})
 }
 
 type doDetailRequest struct {

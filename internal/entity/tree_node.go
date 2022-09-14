@@ -3,13 +3,13 @@
 package entity
 
 type Meta struct {
-	MetaID     string                 `json:"meta_id"  example:"sdfasdflksajflksadjflk000"`
-	MetaName   string                 `json:"meta_name"  example:"las"`
-	Extra      map[string]interface{} `json:"extra"  example:"extra map info"`
-	PID        string                 `json:"pid" example:"fjlksdajklsadjfkl"`
-	CreateTime string                 `json:"create_time" example:"2022-10-11 20:20:20"`
-	UpdateTime string                 `json:"update_time" example:"2022-10-11 20:20:20"`
-	IsDel      bool                   `json:"is_del" example:"false"`
+	MetaID   string                 `json:"meta_id"  example:"sdfasdflksajflksadjflk000"`
+	MetaName string                 `json:"meta_name"  example:"las"`
+	Extra    map[string]interface{} `json:"extra"  example:"extra map info"`
+	PID      string                 `json:"pid" example:"fjlksdajklsadjfkl"`
+	// CreateTime string                 `json:"create_time" example:"2022-10-11 20:20:20"`
+	// UpdateTime string                 `json:"update_time" example:"2022-10-11 20:20:20"`
+	// IsDel      bool                   `json:"is_del" example:"false"`
 }
 
 // TreeNode -.
@@ -18,4 +18,9 @@ type TreeNode struct {
 	UserID   string `json:"user_id"  example:"sdfasdflksajflksadjflk111"`
 	MasterID string `json:"master_id"  example:"sdfasdflksajflksadjflk111"`
 	MetaList []Meta `json:"meta_list" example:"dsffasfdfsdafsdafsdasadf"`
+}
+
+type MetaNode struct {
+	Meta     Meta       `json:"meta"  example:"extra map info"`
+	Children []MetaNode `json:"children"  example:"children list"`
 }

@@ -39,7 +39,7 @@ type doSaveRequest struct {
 }
 
 type appSaveData struct {
-	AppIDList []string `json:"app_id_list"`
+	MetaIDList []string `json:"meta_id_list"`
 }
 
 // @Summary     Save
@@ -68,7 +68,7 @@ func (r *appRoutes) save(c *gin.Context) {
 		message = err.Error()
 	}
 
-	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: appSaveData{AppIDList: appIDList}})
+	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: appSaveData{MetaIDList: appIDList}})
 }
 
 type doListRequest struct {

@@ -30,5 +30,5 @@ CREATE TABLE public.t_meta_path (
 	CONSTRAINT t_meta_path_pk PRIMARY KEY (id)
 );
 
-CREATE UNIQUE INDEX t_ancester_id_descendant_id_distance_idx ON public.t_meta_path (ancestor_id, descendant_id, distance);
+CREATE UNIQUE INDEX t_meta_path_ancestor_id_idx ON public.t_meta_path (ancestor_id,descendant_id);
 

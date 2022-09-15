@@ -15,7 +15,7 @@ curl -X POST -d '{"tree_node": {"tenant_id":"fcb3883b-7847-40d1-a89c-03e70db89bb
 
 
 # update
-curl -X POST -d '{"app_list": [{"app_id": "fcb3883b-7847-40d1-a89c-03e70db89bb5", "tenant_id":"", "user_id": "", "project_id": "", "app_name": "las", "app_type_id": "", "icon": "https://las.com/las.ico", "cover": "https://las.com/cover.png", "brief": "hello"}]}' "http://localhost:8830/v1/app/save"
+curl -X POST -d '{"tree_node": {"tenant_id":"fcb3883b-7847-40d1-a89c-03e70db89bb5", "master_id":"fcb3883b-7847-40d1-a89c-03e70db89111", "user_id": "fcb3883b-7847-40d1-a89c-03e70db89000", "meta_list": [{"meta_id": "22e27691-8b8d-45e3-87ae-2d20a9448767", "meta_name": "news","extra": {"remark": "good news!", "icon": "https://las.com/category.png"}, "pid": "f9605c0f-1074-434a-87a3-2585819beacf"}]}}' "http://localhost:8850/v1/page_category/save"
 
 
 # list

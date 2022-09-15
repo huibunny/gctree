@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -49,13 +50,71 @@ func (r *CTreeRepo) Save(ctx context.Context, tn entity.TreeNode) ([]string, int
 	masterID := r.uuid(tn.MasterID)
 	userID := r.uuid(tn.UserID)
 	for _, meta := range tn.MetaList {
-		metaID := r.uuid(meta.MetaID)
-		if metaID != nil {
+		metaMetaID := r.uuid(meta.MetaID)
+		if metaMetaID != nil {
 			// update
 			// 1. update meta data
+			sql, args, err = r.Builder.Update(USER_TABLE_META).Set("meta_name", meta.MetaName).Set("extra", meta.Extra).Where(squirrel.Eq{"id": metaMetaID}).ToSql()
+			if err != nil {
+				return nil, -2, fmt.Errorf("CTreeRepo - Save - builder.ToSql: %w", err)
+			}
+			_, err = tx.Exec(ctx, sql, args...)
+			if err != nil {
+				return nil, -2, fmt.Errorf("CTreeRepo - Save - Exec: %w", err)
+			}
 			// 2. check if pid changed
 			// 3. a). do nothing if pid is not changed
 			//    b). update ancestor_id by pid, update the ancestor_id of all descendant by the moved metaID and update distance with distance - 1
+			if len(meta.PID) > 0 {
+				sql, args, err = r.Builder.Select("ancestor_id").From(USER_TABLE_META_PATH).Where(squirrel.Eq{"descendant_id": metaMetaID}).ToSql()
+				if err != nil {
+					return nil, -2, fmt.Errorf("CTreeRepo - Save - builder.ToSql: %w", err)
+				}
+				var ancestorID string
+				err = tx.QueryRow(ctx, sql, args...).Scan(&ancestorID)
+				if err != nil {
+					tx.Rollback(ctx)
+					return nil, -4, fmt.Errorf("CTreeRepo - Save - tx.QueryRow.Scan: %w", err)
+				}
+				if ancestorID != meta.PID {
+					// verify pid: should not be in the subtree
+					// move subtree
+					// 1. delete all path between all subtree nodes and all ancestors of subtree
+					// 2. insert into new node which has the new pid
+					ancestorNestedBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).Select("ancestor_id").Prefix("ancestor_id in (").From(
+						USER_TABLE_META_PATH).Where(squirrel.Eq{"descendant_id": metaMetaID}).Suffix(")")
+					descendantNestedBuilder := squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar).Select("descendant_id").Prefix("descendant_id in (").From(
+						USER_TABLE_META_PATH).Where(squirrel.Eq{"ancestor_id": metaMetaID}).Suffix(")")
+					sql, args, err := r.Builder.Update(USER_TABLE_META_PATH).Set("is_del", true).Where(squirrel.And{ancestorNestedBuilder,
+						descendantNestedBuilder, squirrel.NotEq{"ancestor_id": metaMetaID}}).ToSql()
+					if err != nil {
+						return nil, -2, fmt.Errorf("CTreeRepo - Save - builder.ToSql: %w", err)
+					}
+					_, err = tx.Exec(ctx, sql, args...)
+					if err != nil {
+						return nil, -3, fmt.Errorf("CTreeRepo - Save - builder.Exec: %w", err)
+					}
+
+					sql, _, err = r.Builder.Insert(USER_TABLE_META_PATH).Columns(
+						"tenant_id", "ancestor_id", "descendant_id", "distance", "create_user_id", "update_user_id", "update_time", "is_del").Select(
+						r.Builder.Select("tmp.tenant_id", "tmp.ancestor_id", "tmp2.descendant_id", "tmp.distance + tmp2.distance + 1 as distance",
+							"tmp.create_user_id", "tmp2.create_user_id", "now() as update_time", "? as is_del").From("t_meta_path tmp").CrossJoin("t_meta_path tmp2").Where(
+							"tmp.descendant_id=? and tmp.is_del=false and tmp2.ancestor_id=? and tmp2.is_del=false")).Suffix(
+						"on conflict(ancestor_id, descendant_id) do update set distance=excluded.distance, is_del=excluded.is_del,update_time=excluded.update_time returning id").ToSql()
+					if err != nil {
+						return nil, -2, fmt.Errorf("CTreeRepo - Save - builder.ToSql: %w", err)
+					}
+					var metaID string
+					err = tx.QueryRow(ctx, sql, false, meta.PID, metaMetaID).Scan(&metaID)
+					if err != nil {
+						tx.Rollback(ctx)
+						return nil, -4, fmt.Errorf("CTreeRepo - Save - tx.QueryRow.Scan: %w", err)
+					}
+					metaIDList = append(metaIDList, metaID)
+				}
+			} else {
+				return nil, -5, errors.New("CTreeRepo - Save - invalid pid")
+			}
 		} else {
 			// add
 			sql, args, err = r.Builder.Insert(USER_TABLE_META).Columns(
@@ -162,6 +221,7 @@ func (r *CTreeRepo) List(ctx context.Context, masterID, pid string) (entity.Meta
 		var ancestorExtra map[string]interface{}
 		var metaList []entity.Meta
 		for rows.Next() {
+			// never do db operation in rows.Next(), which can cause dead lock!!!
 			var descendantID, descendantName string
 			var descendantExtra map[string]interface{}
 			err = rows.Scan(&ancestorID, &ancestorName, &ancestorExtra, &descendantID, &descendantName, &descendantExtra)

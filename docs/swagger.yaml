@@ -1,45 +1,49 @@
-basePath: /v1
 definitions:
-  entity.TreeNode:
+  entity.HTTPError:
     properties:
-      app_id:
-        example: sdfasdflksajflksadjflksja
-        type: string
-      app_name:
-        example: las
-        type: string
-      app_type_id:
-        example: fsdfdjklfsdjlkafjslakjfs
-        type: string
-      brief:
-        example: https://las.com/las.png
-        type: string
-      cover:
-        example: https://las.com/las.png
-        type: string
-      create_time:
-        example: "2022-10-11 20:20:20"
-        type: string
-      icon:
-        example: https://las.com/las.ico
-        type: string
-      is_del:
-        example: false
-        type: boolean
-      project_id:
-        example: sdfasdflksajflksadjflk111
-        type: string
-      tenant_id:
-        example: sdfasdflksajflksadjflk111
-        type: string
-      update_time:
-        example: "2022-10-11 20:20:20"
-        type: string
-      user_id:
-        example: sdfasdflksajflksadjflk111
+      code:
+        example: 400
+        type: integer
+      message:
+        example: status bad request
         type: string
     type: object
-  v1.appResponse:
+  entity.Meta:
+    properties:
+      extra:
+        additionalProperties:
+          type: string
+        example:
+          icon: icon1
+          remark: remark1
+        type: object
+      meta_id:
+        example: fcb3883b-7847-40d1-a89c-03e70db89333
+        type: string
+      meta_name:
+        example: meta1
+        type: string
+      pid:
+        example: fcb3883b-7847-40d1-a89c-03e70db89fff
+        type: string
+    type: object
+  entity.TreeNode:
+    properties:
+      master_id:
+        example: fcb3883b-7847-40d1-a89c-03e70db89000
+        type: string
+      meta_list:
+        items:
+          $ref: '#/definitions/entity.Meta'
+        type: array
+      tenant_id:
+        example: fcb3883b-7847-40d1-a89c-03e70db89111
+        type: string
+      user_id:
+        example: fcb3883b-7847-40d1-a89c-03e70db89222
+        type: string
+    type: object
+  gctree_internal_controller_http_v1.appResponse:
     properties:
       data: {}
       errcode:
@@ -49,158 +53,536 @@ definitions:
         example: success
         type: string
     type: object
-  v1.doDeleteRequest:
+  gctree_internal_controller_http_v1.doDeleteRequest:
     properties:
-      app_id_list:
+      meta_id_list:
+        example:
+        - fcb3883b-7847-40d1-a89c-03e70db89111
+        - fcb3883b-7847-40d1-a89c-03e70db89222
+        - fcb3883b-7847-40d1-a89c-03e70db89333
         items:
           type: string
         type: array
     required:
-    - app_id_list
+    - meta_id_list
     type: object
-  v1.doDetailRequest:
+  gctree_internal_controller_http_v1.doSaveRequest:
     properties:
-      app_id:
-        example: ksjdflksdjflksdjf
-        type: string
-    required:
-    - app_id
+      tree_node:
+        $ref: '#/definitions/entity.TreeNode'
     type: object
-  v1.doSaveRequest:
+  internal_controller_http_v1.appResponse:
     properties:
-      app_list:
-        items:
-          $ref: '#/definitions/entity.TreeNode'
-        type: array
-    type: object
-  v1.response:
-    properties:
+      data: {}
+      errcode:
+        example: 0
+        type: integer
       message:
         example: success
         type: string
     type: object
-host: localhost:8820
+  internal_controller_http_v1.doDeleteRequest:
+    properties:
+      meta_id_list:
+        example:
+        - fcb3883b-7847-40d1-a89c-03e70db89111
+        - fcb3883b-7847-40d1-a89c-03e70db89222
+        - fcb3883b-7847-40d1-a89c-03e70db89333
+        items:
+          type: string
+        type: array
+    required:
+    - meta_id_list
+    type: object
+  internal_controller_http_v1.doSaveRequest:
+    properties:
+      tree_node:
+        $ref: '#/definitions/entity.TreeNode'
+    type: object
 info:
   contact: {}
-  description: Using a translation service as an example
-  title: gctree API
-  version: "1.0"
 paths:
-  /user/delete:
+  /tree/delete:
     post:
       consumes:
       - application/json
-      description: Delete system
-      operationId: Delete
+      description: |+
+        Delete tree by meta id list.
+
+
+        ## request
+
+        | field | type | required | description |
+        |:------|:------------|:---:|:----|
+        | data.meta_id_list | array | Y | tree node id list. |
+
+
+
+        ## response
+
+        | field | type | description |
+        |:------|:----|:------------|
+        | errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|
+        | message | string | error text |
+        | data | object | response data is always null value. |
+
+        ## example
+
+        ### request
+
+        ```bash
+
+        curl "http://localhost:8850/v1/tree/delete" \
+          -i \
+          -X 'POST' \
+          -d '{"meta_id_list": ["f2c8e530-efb0-446f-be8f-6add7a2983a0"]}'
+
+        ```
+
+        #### response
+
+        ```json
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Date: Mon, 19 Sep 2022 11:21:54 GMT
+        Content-Length: 45
+
+        {
+            "errcode": 0,
+            "message": "success",
+            "data": null
+        }
+
+        ```
+
+      operationId: delete
       parameters:
-      - description: Delete System
+      - description: tree delete by meta id list
         in: body
-        name: request
+        name: param
         required: true
         schema:
-          $ref: '#/definitions/v1.doDeleteRequest'
+          $ref: '#/definitions/gctree_internal_controller_http_v1.doDeleteRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.appResponse'
+            $ref: '#/definitions/gctree_internal_controller_http_v1.appResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/v1.response'
+            $ref: '#/definitions/entity.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Delete
+            $ref: '#/definitions/entity.HTTPError'
+      summary: Delete tree
       tags:
-      - Delete
-  /user/detail:
+      - tree
+  /tree/detail:
+    get:
+      consumes:
+      - application/json
+      description: |+
+        Show tree detail info by meta id.
+
+
+        ## request
+
+        | field | type | required | description |
+        |:------|:------|:------:|:------------|
+        | meta_id | string | Y | meta id. |
+
+
+
+        ## response
+
+        | field | type | description |
+        |:------|:---|:------------|
+        | errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|
+        | message | string | error text |
+        | data | object | response data with the root node |
+        | data.tenant_id | string | A meta is a node of a tree. |
+        | data.user_id | string | meta id |
+        | data.master_id | string | name of tree node |
+        | data.meta_list | object | store extra meta info of tree node. |
+        | data.meta_list.meta_id | string | meta id |
+        | data.meta_list.meta_name | string | name of tree node |
+        | data.meta_list.extra.remark | string | remark text.  |
+        | data.meta_list.extra.icon | string | icon url: http://nebula.com/home.ico. |
+        | data.meta_list.pid | string | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree. |
+
+        ## example
+
+        ### request
+
+        ```bash
+
+        curl "http://localhost:8850/v1/tree/detail?meta_id=88bbee88-4972-42a6-b0ee-a4a281300bec" \
+         -i \
+         -X GET
+
+        ```
+
+        ### response
+
+        ```json
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Date: Mon, 19 Sep 2022 09:26:30 GMT
+        Content-Length: 358
+
+        {
+            "errcode": 0,
+            "message": "success",
+            "data": {
+                "tenant_id": "fcb3883b-7847-40d1-a89c-03e70db89bb5",
+                "user_id": "fcb3883b-7847-40d1-a89c-03e70db89000",
+                "master_id": "fcb3883b-7847-40d1-a89c-03e70db89111",
+                "meta_list": [
+                    {
+                        "meta_id": "88bbee88-4972-42a6-b0ee-a4a281300bec",
+                        "meta_name": "about",
+                        "extra": {
+                            "icon": "https://las.com/category.png",
+                            "remark": "hello about"
+                        },
+                        "pid": ""
+                    }
+                ]
+            }
+        }
+
+        ```
+
+
+      operationId: detail
+      parameters:
+      - description: tree meta id
+        in: query
+        name: meta_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gctree_internal_controller_http_v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+      summary: Show tree detail info
+      tags:
+      - tree
+  /tree/list:
+    get:
+      consumes:
+      - application/json
+      description: |+
+        List tree.
+
+
+        ## request
+
+        | field | type | required | description |
+        |:------|:------|:------:|:------------|
+        | master_id | string | Y | A master is a host which tree node belongs to: app_id, workspace_id, project_id, etc. |
+        | pid | string | N | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree.|
+
+
+
+        ## response
+
+        | field | type | description |
+        |:------|:---|:------------|
+        | errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|
+        | message | string | error text |
+        | data | object | response data with the root node |
+        | data.meta | object | A meta is a node of a tree. |
+        | data.meta.meta_id | string | meta id |
+        | data.meta.meta_name | string | name of tree node |
+        | data.meta.extra | object | store extra meta info of tree node. |
+        | data.meta.extra.remark | string | remark text.  |
+        | data.meta.extra.icon | string | icon url: http://nebula.com/home.ico. |
+        | data.meta.pid | string | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree. |
+        | data.children | array | child tree node list of the current tree node. |
+
+        ## example
+
+        ### request
+
+        ```bash
+
+
+        curl "http://localhost:8850/v1/tree/list?master_id=f2c8e530-efb0-446f-be8f-6add7a2983a0" \
+         -i \
+         -X GET
+
+        ```
+
+        ### response
+
+        ```json
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Date: Mon, 19 Sep 2022 08:29:06 GMT
+        Content-Length: 1038
+
+        {
+            "errcode": 0,
+            "message": "success",
+            "data": {
+                "meta": {
+                    "meta_id": "f9605c0f-1074-434a-87a3-2585819beacf",
+                    "meta_name": "home",
+                    "extra": {
+                        "icon": "https://las.com/home.png",
+                        "remark": "hello home"
+                    },
+                    "pid": "f9605c0f-1074-434a-87a3-2585819beacf"
+                },
+                "children": [
+                    {
+                        "meta": {
+                            "meta_id": "88bbee88-4972-42a6-b0ee-a4a281300bec",
+                            "meta_name": "about",
+                            "extra": {
+                                "icon": "https://las.com/category.png",
+                                "remark": "hello about"
+                            },
+                            "pid": "f9605c0f-1074-434a-87a3-2585819beacf"
+                        },
+                        "children": [
+                            {
+                                "meta": {
+                                    "meta_id": "620f6273-1a5b-4984-affe-55be14dda276",
+                                    "meta_name": "blog",
+                                    "extra": null,
+                                    "pid": "88bbee88-4972-42a6-b0ee-a4a281300bec"
+                                },
+                                "children": null
+                            },
+                            {
+                                "meta": {
+                                    "meta_id": "f2c8e530-efb0-446f-be8f-6add7a2983a0",
+                                    "meta_name": "event",
+                                    "extra": {
+                                        "icon": "https://las.com/event.png",
+                                        "remark": "hello event"
+                                    },
+                                    "pid": "88bbee88-4972-42a6-b0ee-a4a281300bec"
+                                },
+                                "children": null
+                            }
+                        ]
+                    },
+                    {
+                        "meta": {
+                            "meta_id": "22e27691-8b8d-45e3-87ae-2d20a9448767",
+                            "meta_name": "news",
+                            "extra": {
+                                "icon": "https://las.com/category.png",
+                                "remark": "good news!"
+                            },
+                            "pid": "f9605c0f-1074-434a-87a3-2585819beacf"
+                        },
+                        "children": null
+                    }
+                ]
+            }
+        }
+
+        ```
+
+
+      operationId: list
+      parameters:
+      - description: tree master id
+        in: query
+        name: master_id
+        required: true
+        type: string
+      - description: tree parent id
+        in: query
+        name: pid
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/gctree_internal_controller_http_v1.appResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
+      summary: List tree
+      tags:
+      - tree
+  /tree/save:
     post:
       consumes:
       - application/json
-      description: Detail system
-      operationId: Detail
+      description: |
+        Save without meta_id or update by meta_id a tree.
+
+
+        ## request
+
+        | field | type | required | description |
+        |:------|:------------|:---:|:----|
+        | tree_node | object | Y | A subtree node to be saved. |
+        | tree_node.tenant_id | string | Y | A tenent id is used to separate data from each tenancy. |
+        | tree_node.master_id | string | Y | A master is a host which tree node belongs to: app_id, workspace_id, project_id, etc. |
+        | tree_node.user_id | string | Y | User who does the operation. |
+        | tree_node.meta_list | array | Y | A meta is a node of a tree and meta list is a collection of tree nodes. |
+        | tree_node.meta_list.meta_id | string | N | id of tree node, update if specified, otherwise create it. |
+        | tree_node.meta_list.meta_name | string | Y | name of tree node. |
+        | tree_node.meta_list.extra | object | N | store extra meta info of tree node. |
+        | tree_node.meta_list.extra.remark | string | N | remark text. |
+        | tree_node.meta_list.extra.icon | string | N | icon url: http://nebula.com/home.ico. |
+        | tree_node.meta_list.pid | string | N | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree.|
+
+
+
+        ## response
+
+        | field | type | description |
+        |:------|:----|:------------|
+        | errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|
+        | message | string | error text |
+        | data | object | response data |
+        | data.meta_id_list | array | tree node id created successfully. |
+
+        ## example
+
+        ### create
+
+        #### request
+
+        ```bash
+
+
+        curl 'http://localhost:8850/v1/tree/save' \
+          -i \
+          -X 'POST' \
+          -d '{"tree_node": {"tenant_id":"fcb3883b-7847-40d1-a89c-03e70db89bb5", "master_id":"fcb3883b-7847-40d1-a89c-03e70db89111", "user_id": "fcb3883b-7847-40d1-a89c-03e70db89000", "meta_list": [{"meta_name": "event","extra": {"remark": "hello event", "icon": "https://las.com/event.png"}, "pid": "88bbee88-4972-42a6-b0ee-a4a281300bec"}]}}'
+
+        ```
+
+        #### response
+
+        ```json
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Date: Mon, 19 Sep 2022 07:31:31 GMT
+        Content-Length: 98
+
+        {
+            "errcode": 0,
+            "message": "success",
+            "data": {
+                "meta_id_list": [
+                    "f2c8e530-efb0-446f-be8f-6add7a2983a0"
+                ]
+            }
+        }
+
+        ```
+
+
+        ### update
+
+        #### request
+
+
+        ```bash
+
+        curl 'http://localhost:8850/v1/tree/save' \
+          -i \
+          -X 'POST' \
+          -d '{"tree_node": {"tenant_id":"fcb3883b-7847-40d1-a89c-03e70db89bb5", "master_id":"fcb3883b-7847-40d1-a89c-03e70db89111", "user_id": "fcb3883b-7847-40d1-a89c-03e70db89000", "meta_list": [{"meta_id": "f2c8e530-efb0-446f-be8f-6add7a2983a0", "meta_name": "event","extra": {"remark": "hi event", "icon": "https://las.com/event.png"}, "pid": "88bbee88-4972-42a6-b0ee-a4a281300bec"}]}}'
+
+        ```
+
+        #### response
+
+        ```json
+
+        HTTP/1.1 200 OK
+        Content-Type: application/json; charset=utf-8
+        Date: Mon, 19 Sep 2022 11:30:20 GMT
+        Content-Length: 98
+
+        {
+            "errcode": 0,
+            "message": "success",
+            "data": {
+                "meta_id_list": [
+                    "f47db7ef-f1f9-4335-989c-95ab74c1dfd1"
+                ]
+            }
+        }
+
+        ```
+      operationId: save
       parameters:
-      - description: Detail System
+      - description: tree to be saved
         in: body
-        name: request
+        name: param
         required: true
         schema:
-          $ref: '#/definitions/v1.doDetailRequest'
+          $ref: '#/definitions/gctree_internal_controller_http_v1.doSaveRequest'
       produces:
       - application/json
       responses:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/v1.appResponse'
+            $ref: '#/definitions/gctree_internal_controller_http_v1.appResponse'
         "400":
           description: Bad Request
           schema:
-            $ref: '#/definitions/v1.response'
+            $ref: '#/definitions/entity.HTTPError'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/entity.HTTPError'
         "500":
           description: Internal Server Error
           schema:
-            $ref: '#/definitions/v1.response'
-      summary: Detail
+            $ref: '#/definitions/entity.HTTPError'
+      summary: Save tree
       tags:
-      - Detail
-  /user/list:
-    post:
-      consumes:
-      - application/json
-      description: List system
-      operationId: List
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.appResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: List
-      tags:
-      - List
-  /user/save:
-    post:
-      consumes:
-      - application/json
-      description: Save system
-      operationId: Save
-      parameters:
-      - description: Save System
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/v1.doSaveRequest'
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema:
-            $ref: '#/definitions/v1.appResponse'
-        "400":
-          description: Bad Request
-          schema:
-            $ref: '#/definitions/v1.response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/v1.response'
-      summary: Save
-      tags:
-      - save
+      - tree
 swagger: "2.0"

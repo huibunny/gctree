@@ -40,6 +40,6 @@ func NewRouter(handler *gin.Engine, l logger.Interface, t usecase.CTree, service
 	// Routers
 	h := handler.Group("/v1")
 	{
-		newAppRoutes(h, t, l, serviceName)
+		newAppRoutes(h, t, l)
 	}
 }

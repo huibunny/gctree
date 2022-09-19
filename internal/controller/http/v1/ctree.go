@@ -2,7 +2,6 @@ package v1
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -16,10 +15,10 @@ type appRoutes struct {
 	l logger.Interface
 }
 
-func newAppRoutes(handler *gin.RouterGroup, t usecase.CTree, l logger.Interface, serviceName string) {
+func newAppRoutes(handler *gin.RouterGroup, t usecase.CTree, l logger.Interface) {
 	r := &appRoutes{t, l}
 
-	h := handler.Group(strings.Join([]string{"/", serviceName}, ""))
+	h := handler.Group("tree")
 	{
 		h.POST("/save", r.save)
 		h.GET("/list", r.list)
@@ -42,17 +41,18 @@ type appSaveData struct {
 	MetaIDList []string `json:"meta_id_list"`
 }
 
-// @Summary     Save
-// @Description Save system
-// @ID          Save
-// @Tags  	    save
+// @Summary     Save tree
+// @Description.markdown save
+// @ID          save
+// @Tags  	    tree
 // @Accept      json
 // @Produce     json
-// @Param       request body doSaveRequest true "Save System"
+// @Param       param body doSaveRequest true "tree to be saved"
 // @Success     200 {object} appResponse
-// @Failure     400 {object} response
-// @Failure     500 {object} response
-// @Router      /user/save [post]
+// @Failure     400 {object} entity.HTTPError
+// @Failure     404 {object} entity.HTTPError
+// @Failure     500 {object} entity.HTTPError
+// @Router      /tree/save [post]
 func (r *appRoutes) save(c *gin.Context) {
 	var request doSaveRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
@@ -72,24 +72,23 @@ func (r *appRoutes) save(c *gin.Context) {
 }
 
 type doListRequest struct {
-	MasterID string `form:"master_id" binding:"required" example:"ksjdflksdjflksdjf"`
-	PID      string `form:"pid"  example:"ksjdflksdjflksdjf"`
+	MasterID string `form:"master_id" binding:"required" example:"fcb3883b-7847-40d1-a89c-03e70db89fff"`
+	PID      string `form:"pid"  example:"fcb3883b-7847-40d1-a89c-03e70db89ccc"`
 }
 
-type appListData struct {
-	MetaNode entity.MetaNode `json:"meta_node"`
-}
-
-// @Summary     List
-// @Description List system
-// @ID          List
-// @Tags  	    List
+// @Summary     List tree
+// @Description.markdown list
+// @ID          list
+// @Tags  	    tree
 // @Accept      json
 // @Produce     json
+// @Param       master_id query string true "tree master id"
+// @Param       pid query string false "tree parent id"
 // @Success     200 {object} appResponse
-// @Failure     400 {object} response
-// @Failure     500 {object} response
-// @Router      /user/list [post]
+// @Failure     400 {object} entity.HTTPError
+// @Failure     404 {object} entity.HTTPError
+// @Failure     500 {object} entity.HTTPError
+// @Router      /tree/list [get]
 func (r *appRoutes) list(c *gin.Context) {
 	var request doListRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -104,24 +103,25 @@ func (r *appRoutes) list(c *gin.Context) {
 		message = err.Error()
 	}
 
-	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: appListData{MetaNode: metaNode}})
+	c.JSON(http.StatusOK, appResponse{ErrCode: errcode, Message: message, Data: metaNode})
 }
 
 type doDetailRequest struct {
-	MetaID string `form:"meta_id" binding:"required" example:"ksjdflksdjflksdjf"`
+	MetaID string `form:"meta_id" binding:"required" example:"fcb3883b-7847-40d1-a89c-03e70db89sss"`
 }
 
-// @Summary     Detail
-// @Description Detail system
-// @ID          Detail
-// @Tags  	    Detail
-// @Accept      form
-// @Produce     form
-// @Param       request body doDetailRequest true "Detail System"
+// @Summary     Show tree detail info
+// @Description.markdown detail
+// @ID          detail
+// @Tags  	    tree
+// @Accept      json
+// @Produce     json
+// @Param       meta_id query string true "tree meta id"
 // @Success     200 {object} appResponse
-// @Failure     400 {object} response
-// @Failure     500 {object} response
-// @Router      /user/detail [post]
+// @Failure     400 {object} entity.HTTPError
+// @Failure     404 {object} entity.HTTPError
+// @Failure     500 {object} entity.HTTPError
+// @Router      /tree/detail [get]
 func (r *appRoutes) detail(c *gin.Context) {
 	var request doDetailRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
@@ -141,20 +141,21 @@ func (r *appRoutes) detail(c *gin.Context) {
 }
 
 type doDeleteRequest struct {
-	MetaIDList []string `json:"meta_id_list" binding:"required"`
+	MetaIDList []string `json:"meta_id_list" binding:"required" example:"fcb3883b-7847-40d1-a89c-03e70db89111,fcb3883b-7847-40d1-a89c-03e70db89222,fcb3883b-7847-40d1-a89c-03e70db89333"`
 }
 
-// @Summary     Delete
-// @Description Delete system
-// @ID          Delete
-// @Tags  	    Delete
+// @Summary     Delete tree
+// @Description.markdown delete
+// @ID          delete
+// @Tags  	    tree
 // @Accept      json
 // @Produce     json
-// @Param       request body doDeleteRequest true "Delete System"
+// @Param       param body doDeleteRequest true "tree delete by meta id list"
 // @Success     200 {object} appResponse
-// @Failure     400 {object} response
-// @Failure     500 {object} response
-// @Router      /user/delete [post]
+// @Failure     400 {object} entity.HTTPError
+// @Failure     404 {object} entity.HTTPError
+// @Failure     500 {object} entity.HTTPError
+// @Router      /tree/delete [post]
 func (r *appRoutes) delete(c *gin.Context) {
 	var request doDeleteRequest
 	if err := c.ShouldBindJSON(&request); err != nil {

@@ -16,9 +16,9 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/user/delete": {
+        "/tree/delete": {
             "post": {
-                "description": "Delete system",
+                "description": "Delete tree by meta id list.\n\n\n## request\n\n| field | type | required | description |\n|:------|:------------|:---:|:----|\n| data.meta_id_list | array | Y | tree node id list. |\n\n\n\n## response\n\n| field | type | description |\n|:------|:----|:------------|\n| errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|\n| message | string | error text |\n| data | object | response data is always null value. |\n\n## example\n\n### request\n\n` + "`" + `` + "`" + `` + "`" + `bash\n\ncurl \"http://localhost:8850/v1/tree/delete\" \\\n  -i \\\n  -X 'POST' \\\n  -d '{\"meta_id_list\": [\"f2c8e530-efb0-446f-be8f-6add7a2983a0\"]}'\n\n` + "`" + `` + "`" + `` + "`" + `\n\n#### response\n\n` + "`" + `` + "`" + `` + "`" + `json\n\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: Mon, 19 Sep 2022 11:21:54 GMT\nContent-Length: 45\n\n{\n    \"errcode\": 0,\n    \"message\": \"success\",\n    \"data\": null\n}\n\n` + "`" + `` + "`" + `` + "`" + `\n\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -26,18 +26,18 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Delete"
+                    "tree"
                 ],
-                "summary": "Delete",
-                "operationId": "Delete",
+                "summary": "Delete tree",
+                "operationId": "delete",
                 "parameters": [
                     {
-                        "description": "Delete System",
-                        "name": "request",
+                        "description": "tree delete by meta id list",
+                        "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.doDeleteRequest"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.doDeleteRequest"
                         }
                     }
                 ],
@@ -45,27 +45,33 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.appResponse"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.appResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/user/detail": {
-            "post": {
-                "description": "Detail system",
+        "/tree/detail": {
+            "get": {
+                "description": "Show tree detail info by meta id.\n\n\n## request\n\n| field | type | required | description |\n|:------|:------|:------:|:------------|\n| meta_id | string | Y | meta id. |\n\n\n\n## response\n\n| field | type | description |\n|:------|:---|:------------|\n| errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|\n| message | string | error text |\n| data | object | response data with the root node |\n| data.tenant_id | string | A meta is a node of a tree. |\n| data.user_id | string | meta id |\n| data.master_id | string | name of tree node |\n| data.meta_list | object | store extra meta info of tree node. |\n| data.meta_list.meta_id | string | meta id |\n| data.meta_list.meta_name | string | name of tree node |\n| data.meta_list.extra.remark | string | remark text.  |\n| data.meta_list.extra.icon | string | icon url: http://nebula.com/home.ico. |\n| data.meta_list.pid | string | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree. |\n\n## example\n\n### request\n\n` + "`" + `` + "`" + `` + "`" + `bash\n\ncurl \"http://localhost:8850/v1/tree/detail?meta_id=88bbee88-4972-42a6-b0ee-a4a281300bec\" \\\n -i \\\n -X GET\n\n` + "`" + `` + "`" + `` + "`" + `\n\n### response\n\n` + "`" + `` + "`" + `` + "`" + `json\n\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: Mon, 19 Sep 2022 09:26:30 GMT\nContent-Length: 358\n\n{\n    \"errcode\": 0,\n    \"message\": \"success\",\n    \"data\": {\n        \"tenant_id\": \"fcb3883b-7847-40d1-a89c-03e70db89bb5\",\n        \"user_id\": \"fcb3883b-7847-40d1-a89c-03e70db89000\",\n        \"master_id\": \"fcb3883b-7847-40d1-a89c-03e70db89111\",\n        \"meta_list\": [\n            {\n                \"meta_id\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\",\n                \"meta_name\": \"about\",\n                \"extra\": {\n                    \"icon\": \"https://las.com/category.png\",\n                    \"remark\": \"hello about\"\n                },\n                \"pid\": \"\"\n            }\n        ]\n    }\n}\n\n` + "`" + `` + "`" + `` + "`" + `\n\n\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -73,46 +79,50 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Detail"
+                    "tree"
                 ],
-                "summary": "Detail",
-                "operationId": "Detail",
+                "summary": "Show tree detail info",
+                "operationId": "detail",
                 "parameters": [
                     {
-                        "description": "Detail System",
-                        "name": "request",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/v1.doDetailRequest"
-                        }
+                        "type": "string",
+                        "description": "tree meta id",
+                        "name": "meta_id",
+                        "in": "query",
+                        "required": true
                     }
                 ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.appResponse"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.appResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/user/list": {
-            "post": {
-                "description": "List system",
+        "/tree/list": {
+            "get": {
+                "description": "List tree.\n\n\n## request\n\n| field | type | required | description |\n|:------|:------|:------:|:------------|\n| master_id | string | Y | A master is a host which tree node belongs to: app_id, workspace_id, project_id, etc. |\n| pid | string | N | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree.|\n\n\n\n## response\n\n| field | type | description |\n|:------|:---|:------------|\n| errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|\n| message | string | error text |\n| data | object | response data with the root node |\n| data.meta | object | A meta is a node of a tree. |\n| data.meta.meta_id | string | meta id |\n| data.meta.meta_name | string | name of tree node |\n| data.meta.extra | object | store extra meta info of tree node. |\n| data.meta.extra.remark | string | remark text.  |\n| data.meta.extra.icon | string | icon url: http://nebula.com/home.ico. |\n| data.meta.pid | string | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree. |\n| data.children | array | child tree node list of the current tree node. |\n\n## example\n\n### request\n\n` + "`" + `` + "`" + `` + "`" + `bash\n\n\ncurl \"http://localhost:8850/v1/tree/list?master_id=f2c8e530-efb0-446f-be8f-6add7a2983a0\" \\\n -i \\\n -X GET\n\n` + "`" + `` + "`" + `` + "`" + `\n\n### response\n\n` + "`" + `` + "`" + `` + "`" + `json\n\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: Mon, 19 Sep 2022 08:29:06 GMT\nContent-Length: 1038\n\n{\n    \"errcode\": 0,\n    \"message\": \"success\",\n    \"data\": {\n        \"meta\": {\n            \"meta_id\": \"f9605c0f-1074-434a-87a3-2585819beacf\",\n            \"meta_name\": \"home\",\n            \"extra\": {\n                \"icon\": \"https://las.com/home.png\",\n                \"remark\": \"hello home\"\n            },\n            \"pid\": \"f9605c0f-1074-434a-87a3-2585819beacf\"\n        },\n        \"children\": [\n            {\n                \"meta\": {\n                    \"meta_id\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\",\n                    \"meta_name\": \"about\",\n                    \"extra\": {\n                        \"icon\": \"https://las.com/category.png\",\n                        \"remark\": \"hello about\"\n                    },\n                    \"pid\": \"f9605c0f-1074-434a-87a3-2585819beacf\"\n                },\n                \"children\": [\n                    {\n                        \"meta\": {\n                            \"meta_id\": \"620f6273-1a5b-4984-affe-55be14dda276\",\n                            \"meta_name\": \"blog\",\n                            \"extra\": null,\n                            \"pid\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\"\n                        },\n                        \"children\": null\n                    },\n                    {\n                        \"meta\": {\n                            \"meta_id\": \"f2c8e530-efb0-446f-be8f-6add7a2983a0\",\n                            \"meta_name\": \"event\",\n                            \"extra\": {\n                                \"icon\": \"https://las.com/event.png\",\n                                \"remark\": \"hello event\"\n                            },\n                            \"pid\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\"\n                        },\n                        \"children\": null\n                    }\n                ]\n            },\n            {\n                \"meta\": {\n                    \"meta_id\": \"22e27691-8b8d-45e3-87ae-2d20a9448767\",\n                    \"meta_name\": \"news\",\n                    \"extra\": {\n                        \"icon\": \"https://las.com/category.png\",\n                        \"remark\": \"good news!\"\n                    },\n                    \"pid\": \"f9605c0f-1074-434a-87a3-2585819beacf\"\n                },\n                \"children\": null\n            }\n        ]\n    }\n}\n\n` + "`" + `` + "`" + `` + "`" + `\n\n\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -120,35 +130,56 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "List"
+                    "tree"
                 ],
-                "summary": "List",
-                "operationId": "List",
+                "summary": "List tree",
+                "operationId": "list",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "tree master id",
+                        "name": "master_id",
+                        "in": "query",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "tree parent id",
+                        "name": "pid",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.appResponse"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.appResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     }
                 }
             }
         },
-        "/user/save": {
+        "/tree/save": {
             "post": {
-                "description": "Save system",
+                "description": "Save without meta_id or update by meta_id a tree.\n\n\n## request\n\n| field | type | required | description |\n|:------|:------------|:---:|:----|\n| tree_node | object | Y | A subtree node to be saved. |\n| tree_node.tenant_id | string | Y | A tenent id is used to separate data from each tenancy. |\n| tree_node.master_id | string | Y | A master is a host which tree node belongs to: app_id, workspace_id, project_id, etc. |\n| tree_node.user_id | string | Y | User who does the operation. |\n| tree_node.meta_list | array | Y | A meta is a node of a tree and meta list is a collection of tree nodes. |\n| tree_node.meta_list.meta_id | string | N | id of tree node, update if specified, otherwise create it. |\n| tree_node.meta_list.meta_name | string | Y | name of tree node. |\n| tree_node.meta_list.extra | object | N | store extra meta info of tree node. |\n| tree_node.meta_list.extra.remark | string | N | remark text. |\n| tree_node.meta_list.extra.icon | string | N | icon url: http://nebula.com/home.ico. |\n| tree_node.meta_list.pid | string | N | parent id of the current tree node. list the subtree node if specified by pid, otherwise return the whole tree.|\n\n\n\n## response\n\n| field | type | description |\n|:------|:----|:------------|\n| errcode | int | error code: 200 - success, 400 - bad request, 404 - not found, 500 - internal server error.|\n| message | string | error text |\n| data | object | response data |\n| data.meta_id_list | array | tree node id created successfully. |\n\n## example\n\n### create\n\n#### request\n\n` + "`" + `` + "`" + `` + "`" + `bash\n\n\ncurl 'http://localhost:8850/v1/tree/save' \\\n  -i \\\n  -X 'POST' \\\n  -d '{\"tree_node\": {\"tenant_id\":\"fcb3883b-7847-40d1-a89c-03e70db89bb5\", \"master_id\":\"fcb3883b-7847-40d1-a89c-03e70db89111\", \"user_id\": \"fcb3883b-7847-40d1-a89c-03e70db89000\", \"meta_list\": [{\"meta_name\": \"event\",\"extra\": {\"remark\": \"hello event\", \"icon\": \"https://las.com/event.png\"}, \"pid\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\"}]}}'\n\n` + "`" + `` + "`" + `` + "`" + `\n\n#### response\n\n` + "`" + `` + "`" + `` + "`" + `json\n\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: Mon, 19 Sep 2022 07:31:31 GMT\nContent-Length: 98\n\n{\n    \"errcode\": 0,\n    \"message\": \"success\",\n    \"data\": {\n        \"meta_id_list\": [\n            \"f2c8e530-efb0-446f-be8f-6add7a2983a0\"\n        ]\n    }\n}\n\n` + "`" + `` + "`" + `` + "`" + `\n\n\n### update\n\n#### request\n\n\n` + "`" + `` + "`" + `` + "`" + `bash\n\ncurl 'http://localhost:8850/v1/tree/save' \\\n  -i \\\n  -X 'POST' \\\n  -d '{\"tree_node\": {\"tenant_id\":\"fcb3883b-7847-40d1-a89c-03e70db89bb5\", \"master_id\":\"fcb3883b-7847-40d1-a89c-03e70db89111\", \"user_id\": \"fcb3883b-7847-40d1-a89c-03e70db89000\", \"meta_list\": [{\"meta_id\": \"f2c8e530-efb0-446f-be8f-6add7a2983a0\", \"meta_name\": \"event\",\"extra\": {\"remark\": \"hi event\", \"icon\": \"https://las.com/event.png\"}, \"pid\": \"88bbee88-4972-42a6-b0ee-a4a281300bec\"}]}}'\n\n` + "`" + `` + "`" + `` + "`" + `\n\n#### response\n\n` + "`" + `` + "`" + `` + "`" + `json\n\nHTTP/1.1 200 OK\nContent-Type: application/json; charset=utf-8\nDate: Mon, 19 Sep 2022 11:30:20 GMT\nContent-Length: 98\n\n{\n    \"errcode\": 0,\n    \"message\": \"success\",\n    \"data\": {\n        \"meta_id_list\": [\n            \"f47db7ef-f1f9-4335-989c-95ab74c1dfd1\"\n        ]\n    }\n}\n\n` + "`" + `` + "`" + `` + "`" + `\n",
                 "consumes": [
                     "application/json"
                 ],
@@ -156,18 +187,18 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "save"
+                    "tree"
                 ],
-                "summary": "Save",
-                "operationId": "Save",
+                "summary": "Save tree",
+                "operationId": "save",
                 "parameters": [
                     {
-                        "description": "Save System",
-                        "name": "request",
+                        "description": "tree to be saved",
+                        "name": "param",
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/v1.doSaveRequest"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.doSaveRequest"
                         }
                     }
                 ],
@@ -175,19 +206,25 @@ const docTemplate = `{
                     "200": {
                         "description": "OK",
                         "schema": {
-                            "$ref": "#/definitions/v1.appResponse"
+                            "$ref": "#/definitions/gctree_internal_controller_http_v1.appResponse"
                         }
                     },
                     "400": {
                         "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
-                            "$ref": "#/definitions/v1.response"
+                            "$ref": "#/definitions/entity.HTTPError"
                         }
                     }
                 }
@@ -195,60 +232,70 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "entity.TreeNode": {
+        "entity.HTTPError": {
             "type": "object",
             "properties": {
-                "app_id": {
-                    "type": "string",
-                    "example": "sdfasdflksajflksadjflksja"
+                "code": {
+                    "type": "integer",
+                    "example": 400
                 },
-                "app_name": {
+                "message": {
                     "type": "string",
-                    "example": "las"
-                },
-                "app_type_id": {
-                    "type": "string",
-                    "example": "fsdfdjklfsdjlkafjslakjfs"
-                },
-                "brief": {
-                    "type": "string",
-                    "example": "https://las.com/las.png"
-                },
-                "cover": {
-                    "type": "string",
-                    "example": "https://las.com/las.png"
-                },
-                "create_time": {
-                    "type": "string",
-                    "example": "2022-10-11 20:20:20"
-                },
-                "icon": {
-                    "type": "string",
-                    "example": "https://las.com/las.ico"
-                },
-                "is_del": {
-                    "type": "boolean",
-                    "example": false
-                },
-                "project_id": {
-                    "type": "string",
-                    "example": "sdfasdflksajflksadjflk111"
-                },
-                "tenant_id": {
-                    "type": "string",
-                    "example": "sdfasdflksajflksadjflk111"
-                },
-                "update_time": {
-                    "type": "string",
-                    "example": "2022-10-11 20:20:20"
-                },
-                "user_id": {
-                    "type": "string",
-                    "example": "sdfasdflksajflksadjflk111"
+                    "example": "status bad request"
                 }
             }
         },
-        "v1.appResponse": {
+        "entity.Meta": {
+            "type": "object",
+            "properties": {
+                "extra": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    },
+                    "example": {
+                        "icon": "icon1",
+                        "remark": "remark1"
+                    }
+                },
+                "meta_id": {
+                    "type": "string",
+                    "example": "fcb3883b-7847-40d1-a89c-03e70db89333"
+                },
+                "meta_name": {
+                    "type": "string",
+                    "example": "meta1"
+                },
+                "pid": {
+                    "type": "string",
+                    "example": "fcb3883b-7847-40d1-a89c-03e70db89fff"
+                }
+            }
+        },
+        "entity.TreeNode": {
+            "type": "object",
+            "properties": {
+                "master_id": {
+                    "type": "string",
+                    "example": "fcb3883b-7847-40d1-a89c-03e70db89000"
+                },
+                "meta_list": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/entity.Meta"
+                    }
+                },
+                "tenant_id": {
+                    "type": "string",
+                    "example": "fcb3883b-7847-40d1-a89c-03e70db89111"
+                },
+                "user_id": {
+                    "type": "string",
+                    "example": "fcb3883b-7847-40d1-a89c-03e70db89222"
+                }
+            }
+        },
+        "gctree_internal_controller_http_v1.appResponse": {
             "type": "object",
             "properties": {
                 "data": {},
@@ -262,49 +309,71 @@ const docTemplate = `{
                 }
             }
         },
-        "v1.doDeleteRequest": {
+        "gctree_internal_controller_http_v1.doDeleteRequest": {
             "type": "object",
             "required": [
-                "app_id_list"
+                "meta_id_list"
             ],
             "properties": {
-                "app_id_list": {
+                "meta_id_list": {
                     "type": "array",
                     "items": {
                         "type": "string"
-                    }
+                    },
+                    "example": [
+                        "fcb3883b-7847-40d1-a89c-03e70db89111",
+                        "fcb3883b-7847-40d1-a89c-03e70db89222",
+                        "fcb3883b-7847-40d1-a89c-03e70db89333"
+                    ]
                 }
             }
         },
-        "v1.doDetailRequest": {
+        "gctree_internal_controller_http_v1.doSaveRequest": {
             "type": "object",
-            "required": [
-                "app_id"
-            ],
             "properties": {
-                "app_id": {
-                    "type": "string",
-                    "example": "ksjdflksdjflksdjf"
+                "tree_node": {
+                    "$ref": "#/definitions/entity.TreeNode"
                 }
             }
         },
-        "v1.doSaveRequest": {
+        "internal_controller_http_v1.appResponse": {
             "type": "object",
             "properties": {
-                "app_list": {
-                    "type": "array",
-                    "items": {
-                        "$ref": "#/definitions/entity.TreeNode"
-                    }
-                }
-            }
-        },
-        "v1.response": {
-            "type": "object",
-            "properties": {
+                "data": {},
+                "errcode": {
+                    "type": "integer",
+                    "example": 0
+                },
                 "message": {
                     "type": "string",
                     "example": "success"
+                }
+            }
+        },
+        "internal_controller_http_v1.doDeleteRequest": {
+            "type": "object",
+            "required": [
+                "meta_id_list"
+            ],
+            "properties": {
+                "meta_id_list": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    },
+                    "example": [
+                        "fcb3883b-7847-40d1-a89c-03e70db89111",
+                        "fcb3883b-7847-40d1-a89c-03e70db89222",
+                        "fcb3883b-7847-40d1-a89c-03e70db89333"
+                    ]
+                }
+            }
+        },
+        "internal_controller_http_v1.doSaveRequest": {
+            "type": "object",
+            "properties": {
+                "tree_node": {
+                    "$ref": "#/definitions/entity.TreeNode"
                 }
             }
         }
@@ -313,12 +382,12 @@ const docTemplate = `{
 
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = &swag.Spec{
-	Version:          "1.0",
-	Host:             "localhost:8820",
-	BasePath:         "/v1",
+	Version:          "",
+	Host:             "",
+	BasePath:         "",
 	Schemes:          []string{},
-	Title:            "gctree API",
-	Description:      "Using a translation service as an example",
+	Title:            "",
+	Description:      "",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 }
